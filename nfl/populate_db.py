@@ -25,12 +25,8 @@ def game_info(game):
 def compile_game_details(season_name):
     full_schedule = NflApi(season_name).full_schedule()
 
-    # get all games for that date
-    set_game_dates = set()
+    # List of game_ids on given game_date
     all_games_on_date = {}
-    for game in full_schedule['fullgameschedule']['gameentry']:
-        game_date = game['date']
-        set_game_dates.add(game_date)
 
     for game in full_schedule['fullgameschedule']['gameentry']:
         if game['date'] not in all_games_on_date:
@@ -39,6 +35,8 @@ def compile_game_details(season_name):
             all_games_on_date[game['date']].append(game['id'])
 
     # get all the games info for the unique dates - Reduce API calls
+    game_instances_all = {}
+
     for date in all_games_on_date:
         games_for_date = NflApi(season_name).all_games_on_date(date)
         for game in full_schedule['fullgameschedule']['gameentry']:
@@ -59,6 +57,16 @@ def compile_game_details(season_name):
                                          score_home,
                                          score_away,
                                          *args)
+                game_instances_all[game_instance.game_id] = game_instance
 
-                print(game_instance.game_id, ":", game_instance.winner())
-                print(game_instance.winning_team)
+                # print(game_instance.game_id, ":", game_instance.winner())
+                # print(game_instance.winning_team)
+            else:
+                pass
+        break
+    print(len(all_games_on_date))
+    print(game_instances_all)
+    search_game_id = int(input('what number: '))
+    print(game_instances_all[search_game_id].winning_team)
+    
+compile_game_details('2017-regular')
