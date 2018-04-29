@@ -9,7 +9,7 @@ first = GameInfo(season_name,'40368', '2017-09-10', "1:00PM", "HOMER_GAME", None
 
 
 print(first.game_id,
-first.score_home,
-first.score_away)
+        first.score_home,
+        first.score_away)
 
 

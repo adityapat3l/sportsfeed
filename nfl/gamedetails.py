@@ -1,4 +1,5 @@
-import nfl.api
+from nfl.api import NflApi
+
 
 # Change to Kwargs
 class Away:
@@ -20,24 +21,46 @@ class Home:
 
 
 class GameInfo(Away, Home):
-    def __init__(self, season_name, game_id, date, time, location, delayed_reason, *args):
+    def __init__(self, season_name, game_id, date, time, location, delayed_reason,
+                 score_home='', score_away='', *args):
         super().__init__(*args)
         self.season_name = season_name
         self.season_year = season_name.split('-')[0]
         self.season_type = season_name.split('-')[1]
-        self.game_id = int(game_id)
+        if not isinstance(game_id, int):
+            self.game_id = int(game_id)
+        else:
+            self.game_id = game_id
         self.date = date
         self.time = time
         self.game_tz = "EST"
         self.location = location
         self.delayed_reason = delayed_reason
-        self.winner = None
-        self.score_home = 0
-        self.score_away = 0
-        self.game_details()
+        if not score_away and not score_away:
+            self.score_home = 0
+            self.score_away = 0
+            self.game_details()
+        else:
+            self.score_home = score_home
+            self.score_away = score_away
+
+        self.winning_team = self.winner()
 
     def game_details(self):
-        self.score_home, self.score_away = nfl.api.NflApi().game_score(self.season_name, self.game_id, self.date, self.time)
+        self.score_home, self.score_away = NflApi(self.season_name).game_score(self.game_id, self.date)
+
+    def winner(self):
+        if self.score_home > self.score_away:
+            self.winning_team = self.id_home_team
+            return 'The ' + str(self.name_home_team) + ' won against the ' +\
+                            str(self.name_away_team)
+        elif self.score_home < self.score_away:
+            self.winning_team = self.id_away_team
+            return 'The ' + str(self.name_away_team) + ' won against the ' +\
+                            str(self.name_home_team)
+        else:
+            self.winning_team = 'Tie'
+            return 'Tied'
 
 
 
