@@ -10,6 +10,9 @@ class Away:
         self.abbr_away_team = abbr_away_team
         self.city_away_team = city_away_team
 
+    def players_injured(self):
+        pass
+
 
 class Home:
     def __init__(self, id_home_team, name_home_team, abbr_home_team, city_home_team, *args):
@@ -18,6 +21,9 @@ class Home:
         self.name_home_team = name_home_team
         self.abbr_home_team = abbr_home_team
         self.city_home_team = city_home_team
+
+    def players_injured(self):
+        pass
 
 
 class GameInfo(Away, Home):
@@ -61,6 +67,11 @@ class GameInfo(Away, Home):
         else:
             self.winning_team = 'Tie'
             return 'Tied'
+
+    def players_injured_count(self):
+        pass
+
+
 
 
 

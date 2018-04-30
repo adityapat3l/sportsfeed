@@ -1,6 +1,5 @@
 from nfl.gamedetails import GameInfo
 from nfl.api import NflApi
-import json
 
 
 def team_info(team):
@@ -22,10 +21,7 @@ def game_info(game):
     return game_id, game_date, game_time, game_location, game_delayed_reason
 
 
-def compile_game_details(season_name):
-    full_schedule = NflApi(season_name).full_schedule()
-
-    # List of game_ids on given game_date
+def get_game_id_by_date(full_schedule):
     all_games_on_date = {}
 
     for game in full_schedule['fullgameschedule']['gameentry']:
@@ -34,11 +30,19 @@ def compile_game_details(season_name):
         else:
             all_games_on_date[game['date']].append(game['id'])
 
-    # get all the games info for the unique dates - Reduce API calls
+    return all_games_on_date
+
+
+def compile_season_details(season_name):
+    full_schedule = NflApi(season_name).full_schedule()
+
+    # List of game_ids on given game_date
+    dict_game_id_by_date = get_game_id_by_date(full_schedule)
+
     game_instances_all = {}
 
-    for date in all_games_on_date:
-        games_for_date = NflApi(season_name).all_games_on_date(date)
+    for date in dict_game_id_by_date:
+        game_details_for_date = NflApi(season_name).all_games_on_date(date)
         for game in full_schedule['fullgameschedule']['gameentry']:
             if game['date'] == date:
                 home_args = team_info(game['homeTeam'])
@@ -46,7 +50,7 @@ def compile_game_details(season_name):
                 args = (*away_args, *home_args)
                 game_id, game_date, game_time, game_location, game_delayed_reason = game_info(game)
 
-                score_home, score_away = NflApi(season_name).game_score(game_id, game_date, games_for_date)
+                score_home, score_away = NflApi(season_name).game_score(game_id, game_date, game_details_for_date)
 
                 game_instance = GameInfo(season_name,
                                          game_id,
@@ -63,10 +67,7 @@ def compile_game_details(season_name):
                 # print(game_instance.winning_team)
             else:
                 pass
-        break
-    print(len(all_games_on_date))
-    print(game_instances_all)
-    search_game_id = int(input('what number: '))
-    print(game_instances_all[search_game_id].winning_team)
+
+    return game_instances_all
     
-compile_game_details('2017-regular')
+compile_season_details('2017-regular')
