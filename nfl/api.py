@@ -10,15 +10,20 @@ class NflApi:
         self.password = nfl.config.password
         self.season_name = season_name
 
-    def full_schedule(self):
+    def get_api_data(self, url):
         response = requests.get(
-            url="https://api.mysportsfeeds.com/v1.2/pull/nfl/{}/full_game_schedule.json".format(self.season_name),
+            url=url,
             auth=(self.username, self.password)
         )
         full_schedule = json.loads(response.content.decode('utf-8'))
         return full_schedule
 
-    def game_score(self, game_id, date, games_on_date=''):
+    def full_schedule(self):
+        url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{}/full_game_schedule.json".format(self.season_name)
+        response = self.get_api_data(url)
+        return response
+
+    def game_score(self, game_id, date, games_on_date=None):
         if not games_on_date:
             games_on_date = self.all_games_on_date(date)
         score_home = 0
@@ -35,15 +40,20 @@ class NflApi:
         if date > str(datetime.datetime.today()):
             return 'The Game Will Be Played On {0}'.format(date)
 
-        response = requests.get(
-            url=" https://api.mysportsfeeds.com/v1.2/pull/nfl/{0}/scoreboard.json?fordate={1}?force=false".format(
-                self.season_name,
-                date.replace("-", "")),
-            auth=(self.username, self.password)
-        )
+        url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{0}/scoreboard.json?fordate={1}?force=false".format(
+                                self.season_name,
+                                date.replace("-", ""))
+        response = self.get_api_data(url)
 
         if len(response.content) == 0:
             return 'The Game Has Not Begun Yet'
 
         all_game_details = json.loads(response.content.decode('utf-8'))
         return all_game_details
+
+    def full_season_details_by_team(self):
+        url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{0}/team_gamelogs.json".format(self.season_name)
+        response = self.get_api_data(url)
+
+        return response
+
