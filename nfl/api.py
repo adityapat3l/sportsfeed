@@ -10,13 +10,17 @@ class NflApi:
         self.password = nfl.config.password
         self.season_name = season_name
 
-    def get_api_data(self, url):
+    def get_api_data(self, url, payload=None):
         response = requests.get(
             url=url,
-            auth=(self.username, self.password)
+            auth=(self.username, self.password),
+            params=payload
         )
-        full_schedule = json.loads(response.content.decode('utf-8'))
-        return full_schedule
+        if response.status_code == 200:
+            data = json.loads(response.content.decode('utf-8'))
+            return data
+        else:
+            raise ValueError('Api Pull failed with status code: ' + str(response.status_code))
 
     def full_schedule(self):
         url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{}/full_game_schedule.json".format(self.season_name)
@@ -43,6 +47,7 @@ class NflApi:
         url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{0}/scoreboard.json?fordate={1}?force=false".format(
                                 self.season_name,
                                 date.replace("-", ""))
+        params = {'fordate':date.replace("-",""), 'force':False}
         response = self.get_api_data(url)
 
         if len(response.content) == 0:
@@ -56,4 +61,12 @@ class NflApi:
         response = self.get_api_data(url)
 
         return response
+
+
+    def team_logs(self, team):
+        url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{0}/team_gamelogs.json".format(self.season_name)
+        params = {'team': team}
+
+        response = self.get_api_data(url, params)
+
 
