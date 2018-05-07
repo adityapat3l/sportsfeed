@@ -33,7 +33,23 @@ def get_game_id_by_date(full_schedule):
     return all_games_on_date
 
 
-def compile_season_details(season_name):
+def list_distinct_team_abbrv(full_schedule):
+    teams_abbrv = []
+
+    for game in full_schedule['fullgameschedule']['gameentry']:
+        if game['homeTeam']['Abbreviation'] not in teams_abbrv:
+            teams_abbrv.append(game['homeTeam']['Abbreviation'])
+
+    return teams_abbrv
+
+
+
+def compile_season_details_by_team(season_name, full_schedule):
+    team_abbrv = list_distinct_team_abbrv(full_schedule)
+
+
+
+def compile_season_details_by_date(season_name, full_schedule):
     full_schedule = NflApi(season_name).full_schedule()
 
     # List of game_ids on given game_date
@@ -69,5 +85,12 @@ def compile_season_details(season_name):
                 pass
 
     return game_instances_all
-    
-compile_season_details('2017-regular')
+
+def main():
+    season_name = '2017-regular'
+    full_schedule = NflApi(season_name).full_schedule()
+    a = list_distinct_team_abbrv(full_schedule)
+    print(a)
+    print(len(a))
+main()
+# compile_season_details('2017-regular')
