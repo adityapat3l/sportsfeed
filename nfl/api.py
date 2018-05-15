@@ -11,12 +11,20 @@ class NflApi:
         self.season_name = season_name
 
     def get_api_data(self, url):
+
+        # base = "https://api.mysportsfeeds.com/v1.2/pull/nfl"
+        # ext = ext
+        # url = base + ext
         response = requests.get(
             url=url,
             auth=(self.username, self.password)
         )
-        full_schedule = json.loads(response.content.decode('utf-8'))
-        return full_schedule
+        if response.status_code == 200:
+            full_schedule = json.loads(response.content.decode('utf-8'))
+            return full_schedule
+        else:
+            print(response.status_code)
+            return
 
     def full_schedule(self):
         url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{}/full_game_schedule.json".format(self.season_name)
@@ -45,11 +53,10 @@ class NflApi:
                                 date.replace("-", ""))
         response = self.get_api_data(url)
 
-        if len(response.content) == 0:
-            return 'The Game Has Not Begun Yet'
+        if not response:
+            return 'There is no Data for the game'
 
-        all_game_details = json.loads(response.content.decode('utf-8'))
-        return all_game_details
+        return response
 
     def full_season_details_by_team(self):
         url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{0}/team_gamelogs.json".format(self.season_name)

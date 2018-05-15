@@ -1,6 +1,8 @@
 from nfl.gamedetails import GameInfo
 from nfl.api import NflApi
-
+import json
+import pymysql
+import config
 
 def team_info(team):
     team_id = team['ID']
@@ -50,7 +52,8 @@ def compile_season_details(season_name):
                 args = (*away_args, *home_args)
                 game_id, game_date, game_time, game_location, game_delayed_reason = game_info(game)
 
-                score_home, score_away = NflApi(season_name).game_score(game_id, game_date, game_details_for_date)
+                score_home, score_away = NflApi(season_name).game_score(game_id, game_date, games_on_date
+                                                                        =game_details_for_date)
 
                 game_instance = GameInfo(season_name,
                                          game_id,
@@ -69,5 +72,21 @@ def compile_season_details(season_name):
                 pass
 
     return game_instances_all
+
+
+def add_game_information_to_db(season_name):
+    game_instances = compile_season_details(season_name)
+
+    for id in game_instances:
+        pass
+
+    mysql_conn = pymysql.connect(host=config.mysql_host, port=config.mysql_port, user=config.mysql_user,
+                                 passwd=config.mysql_password, db=config.mysql_dbname)
+    mysql_cur = mysql_conn.cursor()
+    query = ''' '''
+
+    mysql_cur.execute(query)
+    mysql_cur.commit()
+    mysql_cur.close()
     
-compile_season_details('2017-regular')
+    return game_instances

@@ -1,5 +1,5 @@
 from nfl.api import NflApi
-
+import datetime
 
 # Change to Kwargs
 class Away:
@@ -39,6 +39,8 @@ class GameInfo(Away, Home):
             self.game_id = game_id
         self.date = date
         self.time = time
+        dt = date + " " + time
+        self.datetime = str(datetime.datetime.strptime(dt, '%Y-%m-%d %I:%M%p'))
         self.game_tz = "EST"
         self.location = location
         self.delayed_reason = delayed_reason
