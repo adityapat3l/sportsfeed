@@ -17,6 +17,7 @@ class NflApi:
             auth=(self.username, self.password),
             params=payload
         )
+        print(response.url)
         if response.status_code == 200:
 
             data = json.loads(response.content.decode('utf-8'))
@@ -57,17 +58,12 @@ class NflApi:
 
         return response
 
-    def full_season_details_by_team(self):
-        url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{0}/team_gamelogs.json".format(self.season_name)
-        response = self.get_api_data(url)
-
-        return response
-
-
     def team_logs(self, team):
         url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{0}/team_gamelogs.json".format(self.season_name)
         params = {'team': team}
 
         response = self.get_api_data(url, params)
+
+        return response
 
 
