@@ -1,8 +1,9 @@
 from nfl.gamedetails import GameInfo
 from nfl.api import NflApi
+from nfl.library import season_ids
 import json
 import pymysql
-import nfl.config
+import nfl.config as config
 import pickle
 
 def team_info(team):
@@ -132,7 +133,7 @@ def compile_season_details_by_date(season_name, full_schedule):
     return game_instances_all
 
 
-def add_game_information_to_db(season_name):
+def prepare_game_information(season_name):
     full_schedule = NflApi(season_name).full_schedule()
 
     pull_method = input('How to input data(Date, Team)?: ').lower()
@@ -147,19 +148,79 @@ def add_game_information_to_db(season_name):
     for id in game_instances:
         pass
 
+    game_data = []
+    season_data = []
+    team_data = []
+    for instance in game_instances:
+        game_id = game_instances[instance].game_id
+        season_id = season_ids[game_instances[instance].season_name]
+        game_start = game_instances[instance].datetime
+        location = game_instances[instance].location
+        home_team_id = int(game_instances[instance].id_home_team)
+        away_team_id = int(game_instances[instance].id_away_team)
+        score_home = int(game_instances[instance].score_home)
+        score_away = int(game_instances[instance].score_away)
 
+        season_year = int(game_instances[instance].season_year)
+        season_type = game_instances[instance].season_type
+        winner = game_instances[instance].winning_team
+
+        home_team_name = game_instances[instance].name_home_team
+        home_team_abbr = game_instances[instance].abbr_home_team
+        home_team_city = game_instances[instance].city_home_team
+
+        away_team_name = game_instances[instance].name_away_team
+        away_team_abbr = game_instances[instance].abbr_away_team
+        away_team_city = game_instances[instance].city_away_team
+
+
+
+        game_data.append((game_id, season_id, game_start, location, home_team_id, away_team_id, score_home, score_away))
+
+        # Improve this
+        season_data.append((season_id, season_year, season_type, 'Eagles'))
+
+        # Improve this
+        team_data.append((home_team_id, home_team_name, home_team_abbr, home_team_city))
+        team_data.append((away_team_id, away_team_name, away_team_abbr, away_team_city))
+
+    # f = open('output_game.txt', 'w')
+    # f.write(str(game_data))
+    # f.close()
+    #
+    # f = open('output_season.txt', 'w')
+    # f.write(str(season_data))
+    # f.close()
+    #
+    # f = open('output_team.txt', 'w')
+    # f.write(str(team_data))
+    # f.close()
+
+    return game_data, season_data, team_data
+
+
+def add_to_db(game_data=None, season_data=None, team_data=None):
     mysql_conn = pymysql.connect(host=config.mysql_host, port=config.mysql_port, user=config.mysql_user,
-                                 passwd=config.mysql_password, db=config.mysql_dbname)
+                                 passwd=config.mysql_password)
     mysql_cur = mysql_conn.cursor()
-    query = ''' '''
+    team_data_query = '''
+                insert into nfl.teams (id, name, abbr, city) values {0}
+                on duplicate key update id = id; '''.format(str(team_data).strip('[').strip(']'))
 
-    mysql_cur.execute(query)
-    mysql_cur.commit()
-    mysql_cur.close()
-    
-    # return game_instances
+    season_data_query = '''insert into nfl.seasons (id, season_year, season_type, superbowl_champ) values {0} 
+                on duplicate key update id = id; '''.format(str(season_data).strip('[').strip(']'))
+
+    game_data_query = '''insert into nfl.games (id, season_id, game_start, location, home_team_id, away_team_id,
+                                  score_home, score_away) values {0}
+                                   on duplicate key update id = id;'''.format(str(game_data).strip('[').strip(']'))
+
+    mysql_cur.execute(team_data_query)
+    mysql_cur.execute(season_data_query)
+    mysql_cur.execute(game_data_query)
+    mysql_conn.commit()
+    mysql_conn.close()
 
 
-# season_name = input('Please input the name of the season: ')
-add_game_information_to_db('2017-regular')
-# compile_season_details_by_team()
+season_name = input('Please input the name of the season: ')
+game_data, season_data, team_data = prepare_game_information(season_name)
+add_to_db(game_data=game_data, season_data=season_data, team_data=team_data)

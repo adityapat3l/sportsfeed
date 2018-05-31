@@ -44,7 +44,7 @@ class GameInfo(Away, Home):
         self.game_tz = "EST"
         self.location = location
         self.delayed_reason = delayed_reason
-        if not score_away and not score_away:
+        if not score_away or not score_away:
             self.score_home = 0
             self.score_away = 0
             self.game_details()
