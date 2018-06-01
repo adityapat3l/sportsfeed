@@ -167,7 +167,7 @@ def prepare_game_information(season_name):
     for id in game_instances:
         pass
 
-    season_stats = _get_season_stats(season_name)
+    season_stats = get_season_stats(season_name)
 
     champ = 0
 
@@ -235,7 +235,7 @@ def add_to_db(game_data=None, season_data=None, team_data=None):
                 insert into nfl.teams (id, name, abbr, city) values {0}
                 on duplicate key update id = id; '''.format(str(team_data).strip('[').strip(']'))
 
-    season_data_query = '''insert into nfl.seasons (id, season_year, season_type, superbowl_champ) values {0} 
+    season_data_query = '''insert into nfl.seasons (id, season_year, season_type, champion_team_id) values {0} 
                 on duplicate key update id = id; '''.format(str(season_data).strip('[').strip(']'))
 
     game_data_query = '''insert into nfl.games (id, season_id, game_start, location, home_team_id, away_team_id,
@@ -250,5 +250,9 @@ def add_to_db(game_data=None, season_data=None, team_data=None):
 
 
 season_name = input('Please input the name of the season: ')
+
+while season_name not in season_ids:
+    season_name = input('Please input a valid season: ')
+
 game_data, season_data, team_data = prepare_game_information(season_name)
 add_to_db(game_data=game_data, season_data=season_data, team_data=team_data)
