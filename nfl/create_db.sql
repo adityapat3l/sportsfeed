@@ -15,7 +15,8 @@ create table seasons(
   id int not null,
   season_year int not null,
   season_type varchar(255) not null,
-  superbowl_champ varchar(255)
+  champion_team_id int(11),
+  primary key(id)
 );
 
 create table teams(

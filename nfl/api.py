@@ -1,13 +1,13 @@
 import requests
 import json
 import datetime
-import nfl.config
+import nfl.config as config
 
 
 class NflApi:
     def __init__(self, season_name):
-        self.username = nfl.config.username
-        self.password = nfl.config.password
+        self.username = config.username
+        self.password = config.password
         self.season_name = season_name
 
     def get_api_data(self, url, payload=None):
@@ -27,6 +27,11 @@ class NflApi:
 
     def full_schedule(self):
         url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{}/full_game_schedule.json".format(self.season_name)
+        response = self.get_api_data(url)
+        return response
+
+    def overall_season_standings(self):
+        url = "https://api.mysportsfeeds.com/v1.2/pull/nfl/{}/overall_team_standings.json".format(self.season_name)
         response = self.get_api_data(url)
         return response
 

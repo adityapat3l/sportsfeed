@@ -46,6 +46,27 @@ def list_distinct_team_abbrv(full_schedule):
     return teams_abbrv
 
 
+def get_season_stats(season_name):
+    season_stats_unformatted = NflApi(season_name).overall_season_standings()
+
+    season_stats = []
+
+    for record in season_stats_unformatted['overallteamstandings']['teamstandingsentry']:
+        stats = dict()
+        stats['rank'] = int(record['rank'])
+        stats['team_id'] = int(record['team']['ID'])
+
+        for key, value in record['stats'].items():
+            try:
+                stats[key] = int(value['#text'])
+            except ValueError:
+                stats[key] = float(value['#text'])
+
+        season_stats.append(stats)
+
+    return season_stats
+
+
 def compile_season_details_by_team(season_name, full_schedule):
     team_abbrv = list_distinct_team_abbrv(full_schedule)
 
@@ -91,8 +112,6 @@ def compile_season_details_by_team(season_name, full_schedule):
                 game_instances_all[game_instance.game_id] = game_instance
 
     return game_instances_all
-
-
 
     
 def compile_season_details_by_date(season_name, full_schedule):
@@ -148,9 +167,18 @@ def prepare_game_information(season_name):
     for id in game_instances:
         pass
 
+    season_stats = _get_season_stats(season_name)
+
+    champ = 0
+
+    for team_stats in season_stats:
+        if team_stats['rank'] == 1:
+            champ = team_stats['team_id']
+
     game_data = []
     season_data = []
     team_data = []
+
     for instance in game_instances:
         game_id = game_instances[instance].game_id
         season_id = season_ids[game_instances[instance].season_name]
@@ -178,7 +206,7 @@ def prepare_game_information(season_name):
         game_data.append((game_id, season_id, game_start, location, home_team_id, away_team_id, score_home, score_away))
 
         # Improve this
-        season_data.append((season_id, season_year, season_type, 'Eagles'))
+        season_data.append((season_id, season_year, season_type, champ))
 
         # Improve this
         team_data.append((home_team_id, home_team_name, home_team_abbr, home_team_city))
