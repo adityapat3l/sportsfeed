@@ -37,13 +37,13 @@ def get_game_id_by_date(full_schedule):
     return all_games_on_date
 
 
-def list_distinct_team_abbrv(full_schedule):
-    teams_abbrv = []
+def list_distinct_team_id(full_schedule):
+    teams_ids = []
     for game in full_schedule['fullgameschedule']['gameentry']:
-        if game['homeTeam']['Abbreviation'] not in teams_abbrv:
-            teams_abbrv.append(game['homeTeam']['Abbreviation'])
+        if game['homeTeam']['ID'] not in teams_ids:
+            teams_ids.append(game['homeTeam']['ID'])
 
-    return teams_abbrv
+    return teams_ids
 
 
 def get_season_stats(season_name):
@@ -68,10 +68,10 @@ def get_season_stats(season_name):
 
 
 def compile_season_details_by_team(season_name, full_schedule):
-    team_abbrv = list_distinct_team_abbrv(full_schedule)
+    team_ids = list_distinct_team_id(full_schedule)
 
     team_logs = []
-    for team in team_abbrv:
+    for team in team_ids:
         dict_team_info = {}
         team_api_data = NflApi(season_name).team_logs(team)
         dict_team_info['team'] = team
@@ -87,29 +87,32 @@ def compile_season_details_by_team(season_name, full_schedule):
     game_instances_all = {}
 
     for team_season_details in team_logs:
-        team_ab = team_season_details['team']
+        team_id = team_season_details['team']
         game = team_season_details['details']['teamgamelogs']
         for _ in game:
-            for game_details in game['gamelogs']:
-                home_args = team_info(game_details['game']['homeTeam'])
-                away_args = team_info(game_details['game']['awayTeam'])
-                args = (*away_args, *home_args)
-                game_id, game_date, game_time, game_location, game_delayed_reason = game_info(game_details["game"])
+            try:
+                for game_details in game['gamelogs']:
+                    home_args = team_info(game_details['game']['homeTeam'])
+                    away_args = team_info(game_details['game']['awayTeam'])
+                    args = (*away_args, *home_args)
+                    game_id, game_date, game_time, game_location, game_delayed_reason = game_info(game_details["game"])
 
-                score_home = game_details['stats']['PointsFor']['#text']
-                score_away = game_details['stats']['PointsAgainst']['#text']
+                    score_home = game_details['stats']['PointsFor']['#text']
+                    score_away = game_details['stats']['PointsAgainst']['#text']
 
-                game_instance = GameInfo(season_name,
-                                         game_id,
-                                         game_date,
-                                         game_time,
-                                         game_location,
-                                         game_delayed_reason,
-                                         score_home,
-                                         score_away,
-                                         *args)
+                    game_instance = GameInfo(season_name,
+                                             game_id,
+                                             game_date,
+                                             game_time,
+                                             game_location,
+                                             game_delayed_reason,
+                                             score_home,
+                                             score_away,
+                                             *args)
 
-                game_instances_all[game_instance.game_id] = game_instance
+                    game_instances_all[game_instance.game_id] = game_instance
+            except:
+                print('ERROR', team_id, "\n\n\n\n", game)
 
     return game_instances_all
 
